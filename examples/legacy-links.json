@@ -1,0 +1,5 @@
+[
+  { "slug": "gh", "url": "https://github.com/rushabh5000", "title": "GitHub profile", "tags": "social", "created_at": "2023-01-15" },
+  { "keyword": "blog", "long_url": "https://therushabh.in/blog", "title": "Blog", "created_at": 1690000000 },
+  { "url": "https://example.com/no-slug-here", "title": "Slug will be generated" }
+]

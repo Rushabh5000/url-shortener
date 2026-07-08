@@ -1,0 +1,7 @@
+# Caddy automatically provisions and renews Let's Encrypt TLS certificates.
+# This app serves the root domain (both the personal homepage and the shortener).
+
+rushabh.in, www.rushabh.in {
+	encode gzip zstd
+	reverse_proxy app:3000
+}

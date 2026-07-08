@@ -1,0 +1,17 @@
+{
+  "name": "rushabh.in — quick link shortener",
+  "short_name": "rushabh.in",
+  "description": "Personal branded URL shortener",
+  "start_url": "/quick",
+  "display": "standalone",
+  "background_color": "#fbf6f1",
+  "theme_color": "#fbf6f1",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

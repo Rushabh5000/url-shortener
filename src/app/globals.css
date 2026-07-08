@@ -1,0 +1,130 @@
+@import "tailwindcss";
+
+/*
+  Warm, friendly theme: cream page background, coral primary accent,
+  amber/pink as secondary accents, generous pill-shaped controls.
+*/
+:root {
+  color-scheme: light;
+
+  --bg: #fbf6f1;
+  --surface: #ffffff;
+  --surface-2: #fff3ea;
+  --border: #f0e1d2;
+  --border-strong: #e6cdb2;
+
+  --text-primary: #2b211b;
+  --text-secondary: #7a6b5d;
+  --text-muted: #a8988a;
+
+  --coral: #d8592f;
+  --coral-hover: #c24b24;
+  --coral-soft: #fbe7dd;
+  --coral-text: #9a3a18;
+
+  --amber-soft: #fdefd7;
+  --amber-text: #8a5710;
+
+  --pink-soft: #fbe6ed;
+  --pink-text: #93304f;
+
+  --sage-soft: #e8f0dc;
+  --sage-text: #4c6b2e;
+}
+
+html,
+body {
+  background: var(--bg);
+  color: var(--text-primary);
+}
+
+body {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100dvh;
+}
+
+@layer components {
+  .card {
+    @apply rounded-2xl p-5;
+    background: var(--surface);
+    border: 1px solid var(--border);
+  }
+  .btn-primary {
+    @apply inline-flex cursor-pointer items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold text-white transition-colors disabled:opacity-50;
+    background: var(--coral);
+  }
+  .btn-primary:hover {
+    background: var(--coral-hover);
+  }
+  .btn-ghost {
+    @apply inline-flex cursor-pointer items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition-colors disabled:opacity-50;
+    background: var(--surface-2);
+    color: var(--text-primary);
+  }
+  .btn-ghost:hover {
+    background: var(--border);
+  }
+  .btn-danger {
+    @apply inline-flex cursor-pointer items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition-colors disabled:opacity-50;
+    background: var(--pink-soft);
+    color: var(--pink-text);
+  }
+  .btn-danger:hover {
+    filter: brightness(0.96);
+  }
+  .input {
+    @apply w-full rounded-2xl px-3.5 py-2.5 text-sm outline-none;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+  }
+  .input::placeholder {
+    color: var(--text-muted);
+  }
+  .input:focus {
+    border-color: var(--coral);
+    box-shadow: 0 0 0 3px var(--coral-soft);
+  }
+  .label {
+    @apply mb-1.5 block text-xs font-medium uppercase tracking-wide;
+    color: var(--text-muted);
+  }
+  .badge {
+    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium;
+  }
+  .badge-danger {
+    background: var(--pink-soft);
+    color: var(--pink-text);
+  }
+  .badge-success {
+    background: var(--sage-soft);
+    color: var(--sage-text);
+  }
+  .tile {
+    @apply rounded-2xl p-3;
+    background: var(--surface-2);
+  }
+}
+
+@layer utilities {
+  .text-heading {
+    color: var(--text-primary);
+  }
+  .text-body-muted {
+    color: var(--text-secondary);
+  }
+  .text-faint {
+    color: var(--text-muted);
+  }
+  .text-accent {
+    color: var(--coral-text);
+  }
+  .border-warm {
+    border-color: var(--border);
+  }
+  .bg-warm-code {
+    background: var(--surface-2);
+    color: var(--text-secondary);
+  }
+}
