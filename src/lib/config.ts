@@ -32,6 +32,12 @@ export const config = {
     .split(",")
     .map((s) => s.trim())
     .filter(Boolean),
+
+  // Public (unauthenticated) link creation is gated by Turnstile. Absent
+  // TURNSTILE_SECRET_KEY, the public create endpoint refuses all requests
+  // rather than silently allowing unprotected creation.
+  turnstileSiteKey: process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "",
+  turnstileSecretKey: process.env.TURNSTILE_SECRET_KEY ?? "",
 };
 
 export function shortUrl(slug: string): string {

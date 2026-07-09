@@ -6,8 +6,10 @@ import { config } from "./config";
 import { ConflictError } from "./errors";
 import { normalizeAndValidateUrl } from "./url";
 import { assertValidAlias, generateSlug, isReserved } from "./slug";
+import { smartSlugCandidate } from "./smart-slug";
 
 const MAX_SLUG_ATTEMPTS = 8;
+const MAX_SMART_SLUG_COLLISION_RETRIES = 3;
 
 export interface CreateLinkInput {
   destinationUrl: string;
@@ -16,6 +18,8 @@ export interface CreateLinkInput {
   notes?: string | null;
   tags?: string | null;
   createdBy?: string | null;
+  /** Set false to skip content-aware slugs and go straight to a random one (default true). */
+  useSmartSlug?: boolean;
 }
 
 export interface CreateLinkResult {
@@ -54,6 +58,20 @@ async function generateUniqueSlug(): Promise<string> {
   throw new ConflictError("Could not generate a unique slug, please try again");
 }
 
+/** Try a content-aware base slug, retrying with a short random suffix on collision. */
+async function resolveSmartSlug(destinationUrl: string): Promise<string | null> {
+  const base = await smartSlugCandidate(destinationUrl);
+  if (!base || isReserved(base)) return null;
+
+  if (!(await getLinkBySlug(base))) return base;
+
+  for (let i = 0; i < MAX_SMART_SLUG_COLLISION_RETRIES; i++) {
+    const candidate = `${base}-${generateSlug(3)}`;
+    if (!(await getLinkBySlug(candidate))) return candidate;
+  }
+  return null; // fall back to a fully random slug
+}
+
 /**
  * Create a short link. Validates the URL, resolves the slug (custom alias or
  * generated), enforces collision + reserved-word rules, and honours REUSE_EXISTING.
@@ -80,7 +98,8 @@ export async function createLink(input: CreateLinkInput): Promise<CreateLinkResu
         .limit(1);
       if (existing[0]) return { link: existing[0], reused: true };
     }
-    slug = await generateUniqueSlug();
+    const smart = input.useSmartSlug !== false ? await resolveSmartSlug(destinationUrl) : null;
+    slug = smart ?? (await generateUniqueSlug());
   }
 
   const now = new Date();
@@ -164,6 +183,11 @@ export async function listLinks(opts: ListLinksOptions = {}): Promise<Link[]> {
     .orderBy(desc(links.createdAt))
     .limit(limit)
     .offset(offset);
+}
+
+/** True for links created through the unauthenticated /create flow — surfaced in the admin UI for moderation. */
+export function isPublicSubmission(createdBy: string | null): boolean {
+  return !!createdBy && createdBy.startsWith("public:");
 }
 
 export { and, eq, sql };

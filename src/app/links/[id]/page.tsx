@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
-import { getLinkById } from "@/lib/links";
+import { getLinkById, isPublicSubmission } from "@/lib/links";
 import { getRecentClicksForLink, getTopReferrersForLink } from "@/lib/stats";
 import { shortUrl } from "@/lib/config";
 import { AppShell } from "@/components/AppShell";
@@ -40,11 +40,18 @@ export default async function LinkDetailPage({ params }: { params: Promise<{ id:
               <a href={url} target="_blank" rel="noreferrer" className="font-mono text-lg font-semibold text-accent hover:underline">
                 {url.replace(/^https?:\/\//, "")}
               </a>
-              {link.disabled ? (
-                <span className="badge badge-danger">disabled</span>
-              ) : (
-                <span className="badge badge-success">active</span>
-              )}
+              <div className="flex items-center gap-2">
+                {link.disabled ? (
+                  <span className="badge badge-danger">disabled</span>
+                ) : (
+                  <span className="badge badge-success">active</span>
+                )}
+                {isPublicSubmission(link.createdBy) && (
+                  <span className="badge" style={{ background: "var(--amber-soft)", color: "var(--amber-text)" }}>
+                    public submission
+                  </span>
+                )}
+              </div>
             </div>
             <p className="break-all text-sm text-body-muted">→ {link.destinationUrl}</p>
             <div className="flex flex-wrap gap-2">

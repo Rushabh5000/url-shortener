@@ -19,6 +19,7 @@ export const RESERVED = new Set<string>([
   "admin",
   "links",
   "new",
+  "create",
   "health",
   "qr",
   "export",

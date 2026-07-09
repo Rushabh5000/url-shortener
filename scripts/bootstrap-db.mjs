@@ -6,9 +6,12 @@
 // (Prefer this over drizzle-kit push for a zero-surprise, non-interactive setup.)
 
 try {
-  await import("dotenv/config"); // load .env when present (local/dev)
+  const dotenv = await import("dotenv");
+  // Next.js convention: .env.local (gitignored, real secrets) overrides .env.
+  dotenv.config({ path: ".env" });
+  dotenv.config({ path: ".env.local", override: true });
 } catch {
-  // dotenv not installed / no .env — rely on the ambient environment
+  // dotenv not installed — rely on the ambient environment
 }
 
 import { neon } from "@neondatabase/serverless";

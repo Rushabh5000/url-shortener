@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
-import { listLinks } from "@/lib/links";
+import { isPublicSubmission, listLinks } from "@/lib/links";
 import { AppShell } from "@/components/AppShell";
 import { CopyButton } from "@/components/CopyButton";
 import { shortUrl } from "@/lib/config";
@@ -62,6 +62,11 @@ export default async function LinksPage({
                       /{l.slug}
                     </Link>
                     {l.disabled && <span className="badge badge-danger ml-2">disabled</span>}
+                    {isPublicSubmission(l.createdBy) && (
+                      <span className="badge ml-2" style={{ background: "var(--amber-soft)", color: "var(--amber-text)" }}>
+                        public
+                      </span>
+                    )}
                   </td>
                   <td className="px-4 py-3 text-body-muted" title={l.destinationUrl}>
                     {prettyUrl(l.destinationUrl)}

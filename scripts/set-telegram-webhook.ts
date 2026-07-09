@@ -4,7 +4,7 @@
  *   npm run set-telegram-webhook            # uses PUBLIC_BASE_URL from .env
  *   npm run set-telegram-webhook -- https://therushabh.in
  */
-import "dotenv/config";
+import "./load-env";
 
 const token = process.env.TELEGRAM_BOT_TOKEN;
 const secret = process.env.TELEGRAM_WEBHOOK_SECRET;

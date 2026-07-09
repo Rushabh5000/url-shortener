@@ -15,7 +15,7 @@
  * Behaviour: invalid URLs are skipped, existing slugs are skipped (duplicates),
  * provided slugs are preserved when valid, otherwise a slug is generated.
  */
-import "dotenv/config";
+import "./load-env";
 import { readFileSync } from "node:fs";
 import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";

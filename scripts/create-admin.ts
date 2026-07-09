@@ -5,7 +5,7 @@
  *
  * Falls back to ADMIN_EMAIL / ADMIN_PASSWORD from .env if args are omitted.
  */
-import "dotenv/config";
+import "./load-env";
 import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { db } from "../src/db/index";
