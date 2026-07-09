@@ -13,7 +13,7 @@ function int(v: string | undefined, fallback: number): number {
 }
 
 export const config = {
-  // The app is deployed at the root domain (rushabh.in) — no subdomain.
+  // The app is deployed at the root domain (therushabh.in) — no subdomain.
   publicBaseUrl: (process.env.PUBLIC_BASE_URL ?? "http://localhost:3000").replace(/\/+$/, ""),
 
   cookieName: process.env.SESSION_COOKIE_NAME ?? "gs_session",

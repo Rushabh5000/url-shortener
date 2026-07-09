@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export const dynamic = "force-static";
 
-// Placeholder personal homepage — this is what visitors to rushabh.in see.
+// Placeholder personal homepage — this is what visitors to therushabh.in see.
 // Edit freely; the shortener lives entirely under /dashboard, /quick, /links,
 // /settings and the /:slug redirect, so nothing here affects it.
 export default function HomePage() {

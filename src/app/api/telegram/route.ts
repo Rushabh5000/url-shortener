@@ -53,7 +53,7 @@ export async function POST(req: Request) {
   if (text === "/start" || text === "/help") {
     await sendMessage(
       chatId,
-      "Send me any URL and I'll shorten it on rushabh.in.\n" +
+      "Send me any URL and I'll shorten it on therushabh.in.\n" +
         "Optional custom alias: put it after a space, e.g.\n" +
         "https://example.com/very/long my-alias",
     );

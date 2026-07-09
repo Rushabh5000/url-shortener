@@ -19,7 +19,7 @@ h1{font-size:3rem;margin:0 0 .5rem;color:#d8592f}
 p{color:#7a6b5d;margin:0 0 1.5rem}
 a{color:#d8592f;text-decoration:none;font-weight:600}
 </style></head><body><div class="card"><h1>${title}</h1><p>${body}</p>
-<a href="/">Go to rushabh.in →</a></div></body></html>`;
+<a href="/">Go to therushabh.in →</a></div></body></html>`;
   return new Response(html, {
     status,
     headers: { "content-type": "text/html; charset=utf-8" },

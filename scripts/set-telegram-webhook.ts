@@ -2,7 +2,7 @@
  * Register the Telegram webhook so the bot points at your deployment.
  *
  *   npm run set-telegram-webhook            # uses PUBLIC_BASE_URL from .env
- *   npm run set-telegram-webhook -- https://rushabh.in
+ *   npm run set-telegram-webhook -- https://therushabh.in
  */
 import "dotenv/config";
 

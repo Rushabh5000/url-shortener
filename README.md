@@ -1,7 +1,7 @@
-# rushabh.in — personal site + branded URL shortener
+# therushabh.in — personal site + branded URL shortener
 
-A real, self-hostable app that serves the root domain **`rushabh.in`**: a small
-personal homepage at `/`, plus a full link shortener (`rushabh.in/43hjfk`) with
+A real, self-hostable app that serves the root domain **`therushabh.in`**: a small
+personal homepage at `/`, plus a full link shortener (`therushabh.in/43hjfk`) with
 a dashboard, mobile quick-create, click tracking, and automation via API key or
 a Telegram bot.
 
@@ -77,10 +77,10 @@ node -e "console.log(require('crypto').randomBytes(16).toString('hex'))"   # IP_
 ## Create a link via API
 
 ```bash
-curl -X POST https://rushabh.in/api/links \
+curl -X POST https://therushabh.in/api/links \
   -H "x-api-key: gsk_xxx" -H "content-type: application/json" \
   -d '{"url":"https://example.com/very/long","alias":"promo"}'
-# -> { "slug":"promo", "shortUrl":"https://rushabh.in/promo", ... }
+# -> { "slug":"promo", "shortUrl":"https://therushabh.in/promo", ... }
 ```
 
 Create an API key in **Settings**. Great for iOS Shortcuts / the bookmarklet.
@@ -110,12 +110,12 @@ Skips invalid URLs and duplicate slugs, preserves provided slugs, generates the 
    npm run create-admin -- you@example.com "pw"
    ```
 3. **Vercel:** import the repo (if not already), set the remaining env vars
-   (`PUBLIC_BASE_URL=https://rushabh.in`, `SESSION_SECRET`, `IP_HASH_SALT`, …), deploy.
+   (`PUBLIC_BASE_URL=https://therushabh.in`, `SESSION_SECRET`, `IP_HASH_SALT`, …), deploy.
 4. **Domain / DNS (apex/root domain — different from a subdomain):** a root domain
    can't use a `CNAME` record (that's a DNS-protocol rule). In Vercel, add domain
-   `rushabh.in`; it will tell you to add an **A record**: `@` → `76.76.21.21`
+   `therushabh.in`; it will tell you to add an **A record**: `@` → `76.76.21.21`
    (Vercel's anycast IP — use the exact value Vercel shows you). Optionally also
-   add `www.rushabh.in` as a CNAME to the apex, and let Vercel redirect it. HTTPS
+   add `www.therushabh.in` as a CNAME to the apex, and let Vercel redirect it. HTTPS
    is automatic either way.
 
 ## Deploy — Option B: VPS + Docker + Caddy
@@ -123,12 +123,12 @@ Skips invalid URLs and duplicate slugs, preserves provided slugs, generates the 
 Same Postgres database (Neon) as above — Docker just runs the app itself, not the DB.
 
 1. DNS: **A** record `@` (root) → your server IP. Optionally `www` → same IP.
-2. `.env` with `DATABASE_URL` (same Neon connection string), `PUBLIC_BASE_URL=https://rushabh.in`, and other secrets.
+2. `.env` with `DATABASE_URL` (same Neon connection string), `PUBLIC_BASE_URL=https://therushabh.in`, and other secrets.
 3. ```bash
    docker compose up -d --build
    docker compose exec app npm run create-admin -- you@example.com "password"
    ```
-   Caddy fetches TLS automatically for both `rushabh.in` and `www.rushabh.in`.
+   Caddy fetches TLS automatically for both `therushabh.in` and `www.therushabh.in`.
 
 ## Telegram bot (optional)
 
@@ -136,7 +136,7 @@ Same Postgres database (Neon) as above — Docker just runs the app itself, not 
 2. `@userinfobot` → your numeric id → set `TELEGRAM_ALLOWED_CHAT_IDS`.
 3. Set `TELEGRAM_WEBHOOK_SECRET` (any random string), deploy, then:
    ```bash
-   npm run set-telegram-webhook -- https://rushabh.in
+   npm run set-telegram-webhook -- https://therushabh.in
    ```
 4. DM the bot a URL → get a short link. `https://x.com/... myalias` sets a custom alias.
 

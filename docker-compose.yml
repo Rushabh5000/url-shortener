@@ -3,8 +3,8 @@
 # The database is Postgres (Neon or any other Postgres host) — set DATABASE_URL
 # in .env, same connection string as the Vercel deployment.
 #
-#   1. Point rushabh.in (A/AAAA record) at this server's IP.
-#   2. Fill in .env (DATABASE_URL, SESSION_SECRET, IP_HASH_SALT, PUBLIC_BASE_URL=https://rushabh.in ...).
+#   1. Point therushabh.in (A/AAAA record) at this server's IP.
+#   2. Fill in .env (DATABASE_URL, SESSION_SECRET, IP_HASH_SALT, PUBLIC_BASE_URL=https://therushabh.in ...).
 #   3. docker compose up -d --build
 #   4. docker compose exec app npm run create-admin -- you@example.com "password"
 

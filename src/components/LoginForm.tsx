@@ -41,7 +41,7 @@ export function LoginForm() {
     <form onSubmit={submit} className="card w-full max-w-sm space-y-4">
       <div>
         <h1 className="text-lg font-bold text-heading">Sign in</h1>
-        <p className="text-sm text-faint">rushabh.in admin</p>
+        <p className="text-sm text-faint">therushabh.in admin</p>
       </div>
 
       {error && (

@@ -32,7 +32,7 @@ export function AppShell({
                 <path d="M14 10a3.5 3.5 0 0 0-5 0l-3 3a3.54 3.54 0 0 0 5 5l1-1" />
               </svg>
             </span>
-            rushabh.in
+            therushabh.in
           </Link>
           <nav className="flex items-center gap-1">
             {NAV.map((item) => (

@@ -6,7 +6,7 @@ import { config } from "./config";
 const ALPHABET = "23456789abcdefghjkmnpqrstuvwxyz";
 
 // Paths the app owns — these can never be used as slugs. The app runs on the
-// root domain (rushabh.in) alongside a real homepage, so this also reserves
+// root domain (therushabh.in) alongside a real homepage, so this also reserves
 // the personal-site sections likely to exist as real pages. Add to this list
 // whenever a new top-level page is added to the site.
 export const RESERVED = new Set<string>([

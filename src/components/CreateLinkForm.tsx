@@ -90,7 +90,7 @@ export function CreateLinkForm({
         <div>
           <label className="label" htmlFor="alias">Custom alias (optional)</label>
           <div className="flex items-center gap-2">
-            <span className="shrink-0 text-sm text-faint">rushabh.in/</span>
+            <span className="shrink-0 text-sm text-faint">therushabh.in/</span>
             <input id="alias" name="alias" placeholder="auto" className="input" />
           </div>
         </div>

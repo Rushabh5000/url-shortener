@@ -2,10 +2,10 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "rushabh.in",
-  description: "Personal site and branded link shortener for rushabh.in",
+  title: "therushabh.in",
+  description: "Personal site and branded link shortener for therushabh.in",
   manifest: "/manifest.webmanifest",
-  appleWebApp: { capable: true, statusBarStyle: "default", title: "rushabh.in" },
+  appleWebApp: { capable: true, statusBarStyle: "default", title: "therushabh.in" },
 };
 
 export const viewport: Viewport = {

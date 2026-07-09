@@ -1,6 +1,6 @@
 {
-  "name": "rushabh.in — quick link shortener",
-  "short_name": "rushabh.in",
+  "name": "therushabh.in — quick link shortener",
+  "short_name": "therushabh.in",
   "description": "Personal branded URL shortener",
   "start_url": "/quick",
   "display": "standalone",
