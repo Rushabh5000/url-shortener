@@ -11,19 +11,19 @@ export function HeroPanel({ projectLinks }: { projectLinks: string[] }) {
   return (
     <div className="space-y-6">
       <div
-        className="flex items-center gap-2 rounded-full border px-4 py-2.5 font-mono text-xs text-heading"
+        className="flex w-full items-center gap-2 rounded-full border px-4 py-2.5 font-mono text-xs text-heading"
         style={{ borderColor: "var(--border)", background: "var(--surface)" }}
       >
-        <span aria-hidden="true" style={{ color: "var(--text-muted)" }}>🔒</span>
-        <span className="truncate">
+        <span aria-hidden="true" className="shrink-0" style={{ color: "var(--text-muted)" }}>🔒</span>
+        <span className="min-w-0 flex-1 truncate whitespace-nowrap">
           <RotatingTypewriter phrases={projectLinks} />
         </span>
-        <span style={{ color: "var(--coral)" }}>|</span>
+        <span className="shrink-0" style={{ color: "var(--coral)" }}>|</span>
       </div>
 
       <p
-        className="relative inline-block text-2xl"
-        style={{ fontFamily: "var(--font-voice)", color: "var(--text-primary)" }}
+        className="relative inline-block whitespace-nowrap text-2xl"
+        style={{ fontFamily: "var(--font-voice)", color: "var(--text-primary)", minHeight: "2rem" }}
       >
         <RotatingTypewriter
           phrases={TAGLINES}

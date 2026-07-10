@@ -62,7 +62,7 @@ export default function HomePage() {
 
   return (
     <div className="mx-auto flex min-h-dvh max-w-4xl flex-col justify-center gap-10 px-6 py-16 md:flex-row md:items-center">
-      <div className="flex-1">
+      <div className="w-full md:w-[380px] md:flex-shrink-0">
         <HeroPanel projectLinks={projectLinks} />
 
         <p className="mt-8 text-sm font-medium" style={{ color: "var(--coral-text)" }}>Hi, I&apos;m</p>
@@ -84,7 +84,7 @@ export default function HomePage() {
         </div>
       </div>
 
-      <div className="flex-1 space-y-6">
+      <div className="min-w-0 flex-1 space-y-6">
         <ProjectSection title="Live" items={live} linkKey="liveUrl" linkLabel="Open" />
         <ProjectSection title="Source" items={source} linkKey="sourceUrl" linkLabel="GitHub" muted />
       </div>

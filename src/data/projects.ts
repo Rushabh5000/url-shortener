@@ -21,12 +21,11 @@ export const PROJECTS: Project[] = [
     name: "URL Shortener",
     description: "Personal branded URL shortener with content-aware slugs, click analytics, and a Telegram bot.",
     liveUrl: "/create",
-    sourceUrl: "https://github.com/Rushabh5000/url-shortener",
   },
   {
     name: "Lowdep",
     description: "40 zero-dependency CLI tools — csv-peek, changelog-gen, envdead, and more, published to npm.",
-    sourceUrl: "https://www.npmjs.com/search?q=lowdep",
+    liveUrl: "https://www.npmjs.com/search?q=lowdep",
   },
   {
     name: "Voucher Tracker",
