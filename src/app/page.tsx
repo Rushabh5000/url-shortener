@@ -1,13 +1,17 @@
 import Link from "next/link";
 import { PROJECTS } from "@/data/projects";
+import { HeroPanel } from "@/components/HeroPanel";
 
 export const dynamic = "force-static";
 
-// Homepage — this is what visitors to therushabh.in see.
-// Left column is a placeholder pending a final design pick; right column
-// (Projects) is final. Nothing here affects the shortener itself, which
-// lives entirely under /dashboard, /quick, /links, /settings, /create,
-// and the /:slug redirect.
+// Homepage — this is what visitors to therushabh.in see. Nothing here
+// affects the shortener itself, which lives entirely under /dashboard,
+// /quick, /links, /settings, /create, and the /:slug redirect.
+
+function displayUrl(url: string): string {
+  if (url.startsWith("/")) return `therushabh.in${url}`;
+  return url.replace(/^https?:\/\//, "").replace(/\/$/, "");
+}
 
 function ProjectLink({ href, label, muted }: { href: string; label: string; muted?: boolean }) {
   const style = { color: muted ? "var(--text-muted)" : "var(--coral-text)" };
@@ -54,15 +58,15 @@ function ProjectSection({ title, items, linkKey, linkLabel, muted }: {
 export default function HomePage() {
   const live = PROJECTS.filter((p) => p.liveUrl);
   const source = PROJECTS.filter((p) => p.sourceUrl);
+  const projectLinks = live.map((p) => displayUrl(p.liveUrl!));
 
   return (
     <div className="mx-auto flex min-h-dvh max-w-4xl flex-col justify-center gap-10 px-6 py-16 md:flex-row md:items-center">
       <div className="flex-1">
-        <p className="text-sm font-medium" style={{ color: "var(--coral-text)" }}>Hi, I&apos;m</p>
+        <HeroPanel projectLinks={projectLinks} />
+
+        <p className="mt-8 text-sm font-medium" style={{ color: "var(--coral-text)" }}>Hi, I&apos;m</p>
         <h1 className="mt-1 text-4xl font-bold text-heading">Rushabh</h1>
-        <p className="mt-3 text-base text-body-muted">
-          Building things on the internet. This is my corner of it.
-        </p>
 
         <div className="mt-8 flex flex-wrap gap-2">
           <a href="https://github.com/rushabh5000" target="_blank" rel="noreferrer" className="btn-ghost">
