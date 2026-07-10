@@ -17,8 +17,8 @@ export function HeroPanel({ projectLinks }: { projectLinks: string[] }) {
         <span aria-hidden="true" className="shrink-0" style={{ color: "var(--text-muted)" }}>🔒</span>
         <span className="min-w-0 flex-1 truncate whitespace-nowrap">
           <RotatingTypewriter phrases={projectLinks} />
+          <span style={{ color: "var(--coral)" }}>|</span>
         </span>
-        <span className="shrink-0" style={{ color: "var(--coral)" }}>|</span>
       </div>
 
       <p

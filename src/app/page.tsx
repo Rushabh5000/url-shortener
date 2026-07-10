@@ -15,15 +15,16 @@ function displayUrl(url: string): string {
 
 function ProjectLink({ href, label, muted }: { href: string; label: string; muted?: boolean }) {
   const style = { color: muted ? "var(--text-muted)" : "var(--coral-text)" };
+  const className = "inline-flex shrink-0 items-center gap-1 whitespace-nowrap text-xs font-medium hover:underline";
   if (href.startsWith("/")) {
     return (
-      <Link href={href} className="text-xs font-medium hover:underline" style={style}>
-        {label} →
+      <Link href={href} className={className} style={style}>
+        {label} ↗
       </Link>
     );
   }
   return (
-    <a href={href} target="_blank" rel="noreferrer" className="text-xs font-medium hover:underline" style={style}>
+    <a href={href} target="_blank" rel="noreferrer" className={className} style={style}>
       {label} ↗
     </a>
   );
