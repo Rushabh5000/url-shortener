@@ -22,8 +22,14 @@ export function HeroPanel({ projectLinks }: { projectLinks: string[] }) {
       </div>
 
       <p
-        className="relative inline-block whitespace-nowrap text-2xl"
-        style={{ fontFamily: "var(--font-voice)", color: "var(--text-primary)", minHeight: "2rem" }}
+        className="relative inline-block whitespace-nowrap"
+        style={{
+          fontFamily: "Georgia, 'Times New Roman', serif",
+          color: "var(--text-primary)",
+          fontSize: "1.5rem",
+          lineHeight: "2rem",
+          height: "2rem",
+        }}
       >
         <RotatingTypewriter
           phrases={TAGLINES}

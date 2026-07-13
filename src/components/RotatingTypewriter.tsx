@@ -2,6 +2,15 @@
 
 import { useEffect, useState } from "react";
 
+// A genuinely empty text node (vs one containing a space) can trigger a
+// margin-collapse quirk in some browsers where the parent's reported height
+// jumps by several px -- confirmed by direct DOM testing on this exact
+// layout. Always rendering at least one space character avoids it entirely.
+const PLACEHOLDER = " ";
+function nonEmpty(s: string): string {
+  return s.length > 0 ? s : PLACEHOLDER;
+}
+
 interface RotatingTypewriterProps {
   phrases: string[];
   speed?: number;
@@ -20,7 +29,7 @@ export function RotatingTypewriter({
   onPhraseTyped,
   onPhraseErased,
 }: RotatingTypewriterProps) {
-  const [text, setText] = useState("");
+  const [text, setText] = useState(PLACEHOLDER);
 
   useEffect(() => {
     let cancelled = false;
@@ -37,7 +46,7 @@ export function RotatingTypewriter({
       let i = 0;
       function tick() {
         if (cancelled) return;
-        setText(full.slice(0, i));
+        setText(nonEmpty(full.slice(0, i)));
         i++;
         if (i <= full.length) {
           schedule(tick, speed);
@@ -54,7 +63,7 @@ export function RotatingTypewriter({
       let i = full.length;
       function tick() {
         if (cancelled) return;
-        setText(full.slice(0, i));
+        setText(nonEmpty(full.slice(0, i)));
         i--;
         if (i >= 0) {
           schedule(tick, eraseSpeed);
