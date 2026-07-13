@@ -7,6 +7,7 @@ import { ConflictError } from "./errors";
 import { normalizeAndValidateUrl } from "./url";
 import { assertValidAlias, generateSlug, isReserved } from "./slug";
 import { smartSlugCandidate } from "./smart-slug";
+import { applyAffiliateParams } from "./affiliate";
 
 const MAX_SLUG_ATTEMPTS = 8;
 const MAX_SMART_SLUG_COLLISION_RETRIES = 3;
@@ -77,7 +78,7 @@ async function resolveSmartSlug(destinationUrl: string): Promise<string | null> 
  * generated), enforces collision + reserved-word rules, and honours REUSE_EXISTING.
  */
 export async function createLink(input: CreateLinkInput): Promise<CreateLinkResult> {
-  const destinationUrl = normalizeAndValidateUrl(input.destinationUrl);
+  const destinationUrl = applyAffiliateParams(normalizeAndValidateUrl(input.destinationUrl));
   const title = input.title?.trim() || null;
   const notes = input.notes?.trim() || null;
   const tags = normalizeTags(input.tags);
@@ -138,7 +139,7 @@ export async function updateLink(id: string, patch: UpdateLinkInput): Promise<Li
   const changes: Partial<Link> = { updatedAt: new Date() };
 
   if (patch.destinationUrl !== undefined) {
-    changes.destinationUrl = normalizeAndValidateUrl(patch.destinationUrl);
+    changes.destinationUrl = applyAffiliateParams(normalizeAndValidateUrl(patch.destinationUrl));
   }
   if (patch.alias !== undefined && patch.alias !== current.slug) {
     const slug = assertValidAlias(patch.alias);
