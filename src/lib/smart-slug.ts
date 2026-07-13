@@ -1,4 +1,5 @@
 import { fetchPageTitle } from "./safe-fetch-meta";
+import { fetchJsRenderedTitle } from "./js-rendered-title";
 
 const STOPWORDS = new Set([
   "www", "http", "https", "com", "html", "htm", "php", "index", "home",
@@ -19,10 +20,10 @@ function isMeaningfulWord(word: string): boolean {
 }
 
 function toSlug(words: string[], maxWords = 4, maxLen = 40): string | null {
-  const kept = words
-    .map((w) => w.toLowerCase())
-    .filter(isMeaningfulWord)
-    .slice(0, maxWords);
+  const kept = Array.from(new Set(words.map((w) => w.toLowerCase()).filter(isMeaningfulWord))).slice(
+    0,
+    maxWords,
+  );
   if (kept.length === 0) return null;
 
   let slug = kept.join("-");
@@ -45,10 +46,27 @@ function keywordsFromUrl(destinationUrl: string): string | null {
   return toSlug(words);
 }
 
-/** Tier 2: fetch the page title (SSRF-safe, bounded) and extract keywords from that instead. */
+/**
+ * Tier 2 + 3, run concurrently so the added latency is bounded by the
+ * slower of the two (~3s), not their sum:
+ *   - Tier 2: SSRF-safe, no-JS page fetch (fast, but blind to client-side
+ *     redirects — some short-link/cashback services only reach their real
+ *     destination via `window.location`, not an HTTP redirect).
+ *   - Tier 3: hosted headless-render (Microlink) that does execute JS, so
+ *     it sees through those client-side redirects. Preferred when it
+ *     returns something, since it reflects the actual destination.
+ */
 async function keywordsFromTitle(destinationUrl: string): Promise<string | null> {
-  const title = await fetchPageTitle(destinationUrl);
+  const [htmlResult, renderedResult] = await Promise.allSettled([
+    fetchPageTitle(destinationUrl),
+    fetchJsRenderedTitle(destinationUrl),
+  ]);
+
+  const rendered = renderedResult.status === "fulfilled" ? renderedResult.value : null;
+  const html = htmlResult.status === "fulfilled" ? htmlResult.value : null;
+  const title = rendered || html;
   if (!title) return null;
+
   const words = title.split(/[\s/_-]+/).filter(Boolean);
   return toSlug(words);
 }
