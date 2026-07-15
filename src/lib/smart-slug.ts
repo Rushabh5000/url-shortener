@@ -1,6 +1,14 @@
 import { fetchPageTitle } from "./safe-fetch-meta";
 import { fetchJsRenderedTitle } from "./js-rendered-title";
 
+// A slug this permits must ALSO satisfy this (same pattern as custom
+// aliases, see slug.ts) — the final safety net in toSlug() below. Whatever
+// upstream word-splitting misses (unusual punctuation, malformed/double-
+// encoded URLs, etc.), this guarantees a generated slug can never contain a
+// character the redirect route would reject (it 404s any slug containing a
+// dot, to filter out asset-like requests such as favicon.ico).
+const VALID_SLUG = /^[a-z0-9][a-z0-9-]{0,63}$/;
+
 const STOPWORDS = new Set([
   "www", "http", "https", "com", "html", "htm", "php", "index", "home",
   "the", "and", "for", "with", "from", "this", "that", "into", "your",
@@ -20,15 +28,23 @@ function isMeaningfulWord(word: string): boolean {
 }
 
 function toSlug(words: string[], maxWords = 4, maxLen = 40): string | null {
-  const kept = Array.from(new Set(words.map((w) => w.toLowerCase()).filter(isMeaningfulWord))).slice(
-    0,
-    maxWords,
-  );
+  // Strip anything that isn't a letter/digit from each word first — handles
+  // stray punctuation from malformed URLs (e.g. a literal "dlhttp:" segment
+  // or an embedded, un-encoded second URL) before the word ever reaches the
+  // length/stopword checks below.
+  const kept = Array.from(
+    new Set(
+      words
+        .map((w) => w.toLowerCase().replace(/[^a-z0-9]/g, ""))
+        .filter(isMeaningfulWord),
+    ),
+  ).slice(0, maxWords);
   if (kept.length === 0) return null;
 
   let slug = kept.join("-");
   if (slug.length > maxLen) slug = slug.slice(0, maxLen).replace(/-[^-]*$/, "");
-  return slug || null;
+
+  return VALID_SLUG.test(slug) ? slug : null;
 }
 
 /** Tier 1: pull keywords straight out of the destination URL's own path. */
@@ -40,7 +56,7 @@ function keywordsFromUrl(destinationUrl: string): string | null {
     return null;
   }
   const words = url.pathname
-    .split(/[/_-]+/)
+    .split(/[/_.:-]+/)
     .flatMap((segment) => segment.split(/(?=[A-Z])/)) // camelCase -> separate words
     .filter(Boolean);
   return toSlug(words);
