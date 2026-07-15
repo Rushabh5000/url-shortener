@@ -26,6 +26,10 @@ export interface CreateLinkInput {
 export interface CreateLinkResult {
   link: Link;
   reused: boolean;
+  /** True if the destination was routed through the affiliate converter (i.e. not Amazon, not reused). */
+  affiliateAttempted: boolean;
+  /** True only if the affiliate converter actually returned a usable link. */
+  affiliateConverted: boolean;
 }
 
 function normalizeTags(tags?: string | null): string | null {
@@ -78,10 +82,21 @@ async function resolveSmartSlug(destinationUrl: string): Promise<string | null> 
  * generated), enforces collision + reserved-word rules, and honours REUSE_EXISTING.
  */
 export async function createLink(input: CreateLinkInput): Promise<CreateLinkResult> {
-  const destinationUrl = applyAffiliateParams(normalizeAndValidateUrl(input.destinationUrl));
+  const originalUrl = normalizeAndValidateUrl(input.destinationUrl);
   const title = input.title?.trim() || null;
   const notes = input.notes?.trim() || null;
   const tags = normalizeTags(input.tags);
+
+  // Smart-slug keyword extraction runs against the *original* URL (a
+  // converted affiliate tracking link is an opaque redirect, useless for
+  // keywords) — run it alongside the affiliate conversion so the two
+  // network calls overlap instead of stacking.
+  const wantsSmartSlug = !input.alias && input.useSmartSlug !== false;
+  const [affiliate, smart] = await Promise.all([
+    applyAffiliateParams(originalUrl),
+    wantsSmartSlug ? resolveSmartSlug(originalUrl) : Promise.resolve(null),
+  ]);
+  const destinationUrl = affiliate.url;
 
   let slug: string;
 
@@ -97,9 +112,15 @@ export async function createLink(input: CreateLinkInput): Promise<CreateLinkResu
         .from(links)
         .where(eq(links.destinationUrl, destinationUrl))
         .limit(1);
-      if (existing[0]) return { link: existing[0], reused: true };
+      if (existing[0]) {
+        return {
+          link: existing[0],
+          reused: true,
+          affiliateAttempted: affiliate.attempted,
+          affiliateConverted: affiliate.converted,
+        };
+      }
     }
-    const smart = input.useSmartSlug !== false ? await resolveSmartSlug(destinationUrl) : null;
     slug = smart ?? (await generateUniqueSlug());
   }
 
@@ -119,7 +140,12 @@ export async function createLink(input: CreateLinkInput): Promise<CreateLinkResu
     createdBy: input.createdBy ?? null,
   };
   await db.insert(links).values(link);
-  return { link, reused: false };
+  return {
+    link,
+    reused: false,
+    affiliateAttempted: affiliate.attempted,
+    affiliateConverted: affiliate.converted,
+  };
 }
 
 export interface UpdateLinkInput {
@@ -139,7 +165,8 @@ export async function updateLink(id: string, patch: UpdateLinkInput): Promise<Li
   const changes: Partial<Link> = { updatedAt: new Date() };
 
   if (patch.destinationUrl !== undefined) {
-    changes.destinationUrl = applyAffiliateParams(normalizeAndValidateUrl(patch.destinationUrl));
+    const affiliate = await applyAffiliateParams(normalizeAndValidateUrl(patch.destinationUrl));
+    changes.destinationUrl = affiliate.url;
   }
   if (patch.alias !== undefined && patch.alias !== current.slug) {
     const slug = assertValidAlias(patch.alias);

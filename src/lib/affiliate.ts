@@ -1,56 +1,57 @@
-// Rewrites Amazon/Flipkart destination URLs to strip any existing affiliate
-// tag and replace it with this account's own, so purchases made through
-// shortened links are tracked correctly. Runs once, at the point a
-// destination URL is set (create or edit) — every creation channel
-// (dashboard, /create, Telegram, API, import) goes through createLink()/
-// updateLink(), so this applies uniformly regardless of source.
+// Rewrites destination URLs so purchases made through shortened links are
+// tracked to this account.
+//
+// Amazon is handled with a static, deterministic tag param (Amazon
+// Associates' own mechanism). Every other domain is routed through
+// EarnKaro's converter API, which covers most Indian retailers (Flipkart,
+// Myntra, Ajio, Nykaa, ...) behind one endpoint -- this replaces what used
+// to be Flipkart-specific static param rewriting.
+//
+// Runs once, at the point a destination URL is set (create or edit) --
+// every creation channel (dashboard, /create, Telegram, API, import) goes
+// through createLink()/updateLink(), so this applies uniformly.
+
+import { convertToEarnKaroLink } from "./earnkaro";
 
 const AMAZON_HOST = /(^|\.)amazon\.[a-z.]+$/i;
 const AMAZON_SHORT_HOSTS = new Set(["amzn.to", "amzn.in", "amzn.eu", "amzn.asia"]);
-const FLIPKART_HOST = /(^|\.)flipkart\.com$/i;
-
 const AMAZON_TAG = "extra.discount-21";
-const FLIPKART_PARAMS = {
-  affid: "rohanpouri",
-  affExtParam1: "ENKR20260514A1974183999",
-  affExtParam2: "232047",
-};
 
 function isAmazon(hostname: string): boolean {
   return AMAZON_HOST.test(hostname) || AMAZON_SHORT_HOSTS.has(hostname);
 }
 
-function isFlipkart(hostname: string): boolean {
-  return FLIPKART_HOST.test(hostname);
+export interface AffiliateResult {
+  url: string;
+  /** True if this domain was routed through EarnKaro (i.e. not Amazon). */
+  attempted: boolean;
+  /** True only if EarnKaro actually returned a usable affiliate link. */
+  converted: boolean;
 }
 
 /**
- * If the URL is an Amazon or Flipkart link, strip any existing affiliate
- * params and append this account's own. Any other URL passes through
- * unchanged. Never throws — an unparseable URL is returned as-is (the
- * caller validates URLs separately).
+ * Amazon: strip any existing tag and set this account's own — always
+ * succeeds, no network call. Everything else: attempt EarnKaro conversion;
+ * on failure (unsupported merchant, no token, network error) the original
+ * URL passes through unchanged. Never throws.
  */
-export function applyAffiliateParams(rawUrl: string): string {
+export async function applyAffiliateParams(rawUrl: string): Promise<AffiliateResult> {
   let url: URL;
   try {
     url = new URL(rawUrl);
   } catch {
-    return rawUrl;
+    return { url: rawUrl, attempted: false, converted: false };
   }
 
-  const hostname = url.hostname.toLowerCase();
-
-  if (isAmazon(hostname)) {
+  if (isAmazon(url.hostname.toLowerCase())) {
     url.searchParams.delete("tag");
     url.searchParams.set("tag", AMAZON_TAG);
-  } else if (isFlipkart(hostname)) {
-    url.searchParams.delete("affid");
-    url.searchParams.delete("affExtParam1");
-    url.searchParams.delete("affExtParam2");
-    for (const [key, value] of Object.entries(FLIPKART_PARAMS)) {
-      url.searchParams.set(key, value);
-    }
+    return { url: url.toString(), attempted: false, converted: false };
   }
 
-  return url.toString();
+  const converted = await convertToEarnKaroLink(rawUrl);
+  if (converted) {
+    return { url: converted, attempted: true, converted: true };
+  }
+  return { url: rawUrl, attempted: true, converted: false };
 }

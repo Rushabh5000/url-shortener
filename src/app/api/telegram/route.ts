@@ -64,7 +64,7 @@ export async function POST(req: Request) {
   const [url, alias] = text.split(/\s+/, 2);
 
   try {
-    const { link, reused } = await createLink({
+    const { link, reused, affiliateAttempted, affiliateConverted } = await createLink({
       destinationUrl: url,
       alias: alias || undefined,
       createdBy: `telegram:${chatId}`,
@@ -76,7 +76,14 @@ export async function POST(req: Request) {
         target: link.slug,
       });
     }
-    await sendMessage(chatId, `${reused ? "Already had that one:\n" : ""}${shortUrl(link.slug)}`);
+    const conversionNote =
+      !reused && affiliateAttempted && !affiliateConverted
+        ? "\n(Could not convert to affiliate, just shortened it.)"
+        : "";
+    await sendMessage(
+      chatId,
+      `${reused ? "Already had that one:\n" : ""}${shortUrl(link.slug)}${conversionNote}`,
+    );
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Something went wrong";
     await sendMessage(chatId, `⚠️ ${msg}`);
