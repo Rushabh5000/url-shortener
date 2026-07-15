@@ -36,58 +36,58 @@
   :root:not([data-theme="light"]) {
     color-scheme: dark;
 
-    --bg: #1c1613;
-    --surface: #261e19;
-    --surface-2: #2f2521;
-    --border: #3d2f28;
-    --border-strong: #4d3c32;
+    --bg: #100c0a;
+    --surface: #221a15;
+    --surface-2: #35281f;
+    --border: #4a382c;
+    --border-strong: #614a3a;
 
-    --text-primary: #f3e9e0;
-    --text-secondary: #c2ac9d;
-    --text-muted: #8f7a6c;
+    --text-primary: #f8f0e8;
+    --text-secondary: #c9b3a1;
+    --text-muted: #93816f;
 
-    --coral: #e37a4c;
-    --coral-hover: #ec8a5f;
-    --coral-soft: #402318;
-    --coral-text: #f0a67c;
+    --coral: #e88551;
+    --coral-hover: #f19563;
+    --coral-soft: #47280f;
+    --coral-text: #f4b284;
 
-    --amber-soft: #3d2f14;
-    --amber-text: #e0b45c;
+    --amber-soft: #45330d;
+    --amber-text: #e8bc61;
 
-    --pink-soft: #3a2029;
-    --pink-text: #e88fac;
+    --pink-soft: #402231;
+    --pink-text: #ee9ab6;
 
-    --sage-soft: #263422;
-    --sage-text: #a3c684;
+    --sage-soft: #263a1f;
+    --sage-text: #aed187;
   }
 }
 
 :root[data-theme="dark"] {
   color-scheme: dark;
 
-  --bg: #1c1613;
-  --surface: #261e19;
-  --surface-2: #2f2521;
-  --border: #3d2f28;
-  --border-strong: #4d3c32;
+  --bg: #100c0a;
+  --surface: #221a15;
+  --surface-2: #35281f;
+  --border: #4a382c;
+  --border-strong: #614a3a;
 
-  --text-primary: #f3e9e0;
-  --text-secondary: #c2ac9d;
-  --text-muted: #8f7a6c;
+  --text-primary: #f8f0e8;
+  --text-secondary: #c9b3a1;
+  --text-muted: #93816f;
 
-  --coral: #e37a4c;
-  --coral-hover: #ec8a5f;
-  --coral-soft: #402318;
-  --coral-text: #f0a67c;
+  --coral: #e88551;
+  --coral-hover: #f19563;
+  --coral-soft: #47280f;
+  --coral-text: #f4b284;
 
-  --amber-soft: #3d2f14;
-  --amber-text: #e0b45c;
+  --amber-soft: #45330d;
+  --amber-text: #e8bc61;
 
-  --pink-soft: #3a2029;
-  --pink-text: #e88fac;
+  --pink-soft: #402231;
+  --pink-text: #ee9ab6;
 
-  --sage-soft: #263422;
-  --sage-text: #a3c684;
+  --sage-soft: #263a1f;
+  --sage-text: #aed187;
 }
 
 html,
