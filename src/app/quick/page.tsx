@@ -1,8 +1,7 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
 import { CreateLinkForm } from "@/components/CreateLinkForm";
-import { LogoutButton } from "@/components/LogoutButton";
+import { AppShell } from "@/components/AppShell";
 
 export const dynamic = "force-dynamic";
 
@@ -19,21 +18,11 @@ export default async function QuickPage({
   const { url } = await searchParams;
 
   return (
-    <div className="mx-auto flex min-h-dvh max-w-md flex-col px-4">
-      <header className="flex items-center justify-between py-5">
-        <span className="text-sm font-bold text-heading">
-          Quick create
-        </span>
-        <div className="flex items-center gap-3">
-          <Link href="/dashboard" className="text-sm text-body-muted hover:text-heading">Dashboard</Link>
-          <LogoutButton />
-        </div>
-      </header>
-
-      <div className="flex flex-1 flex-col justify-center pb-24">
+    <AppShell email={user.email} active="/quick">
+      <div className="mx-auto flex max-w-md flex-col justify-center pb-24 pt-8">
         <p className="mb-4 text-2xl font-bold text-heading">Shorten a link</p>
         <CreateLinkForm variant="quick" initialUrl={url ?? ""} />
       </div>
-    </div>
+    </AppShell>
   );
 }

@@ -77,7 +77,7 @@ export function CreateLinkForm({
           <input
             id="url"
             name="url"
-            type="url"
+            type="text"
             inputMode="url"
             autoFocus
             required

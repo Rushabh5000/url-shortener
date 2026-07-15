@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { and, desc, eq, like, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, like, or, sql } from "drizzle-orm";
 import { db } from "../db";
 import { links, clicks, type Link } from "../db/schema";
 import { config } from "./config";
@@ -188,14 +188,24 @@ export async function deleteLink(id: string): Promise<void> {
   await db.delete(links).where(eq(links.id, id));
 }
 
+export const SORT_OPTIONS = {
+  newest: desc(links.createdAt),
+  oldest: asc(links.createdAt),
+  clicks: desc(links.clickCount),
+  slug: asc(links.slug),
+} as const;
+
+export type SortKey = keyof typeof SORT_OPTIONS;
+
 export interface ListLinksOptions {
   q?: string;
+  sort?: SortKey;
   limit?: number;
   offset?: number;
 }
 
 export async function listLinks(opts: ListLinksOptions = {}): Promise<Link[]> {
-  const { q, limit = 100, offset = 0 } = opts;
+  const { q, sort = "newest", limit = 100, offset = 0 } = opts;
   const where = q
     ? or(
         like(links.slug, `%${q}%`),
@@ -208,7 +218,7 @@ export async function listLinks(opts: ListLinksOptions = {}): Promise<Link[]> {
     .select()
     .from(links)
     .where(where)
-    .orderBy(desc(links.createdAt))
+    .orderBy(SORT_OPTIONS[sort] ?? SORT_OPTIONS.newest)
     .limit(limit)
     .offset(offset);
 }

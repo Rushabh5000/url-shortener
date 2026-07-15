@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
-import { isPublicSubmission, listLinks } from "@/lib/links";
+import { isPublicSubmission, listLinks, SORT_OPTIONS, type SortKey } from "@/lib/links";
 import { AppShell } from "@/components/AppShell";
 import { CopyButton } from "@/components/CopyButton";
 import { shortUrl } from "@/lib/config";
@@ -9,16 +9,24 @@ import { formatDate, prettyUrl, timeAgo } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
+const SORT_LABELS: Record<SortKey, string> = {
+  newest: "Newest first",
+  oldest: "Oldest first",
+  clicks: "Most clicks",
+  slug: "Slug (A–Z)",
+};
+
 export default async function LinksPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{ q?: string; sort?: string }>;
 }) {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
 
-  const { q } = await searchParams;
-  const links = await listLinks({ q });
+  const { q, sort: rawSort } = await searchParams;
+  const sort: SortKey = rawSort && rawSort in SORT_OPTIONS ? (rawSort as SortKey) : "newest";
+  const links = await listLinks({ q, sort });
 
   return (
     <AppShell email={user.email} active="/links">
@@ -34,6 +42,11 @@ export default async function LinksPage({
           placeholder="Search slug, url, title, tag…"
           className="input"
         />
+        <select name="sort" defaultValue={sort} className="input w-auto shrink-0">
+          {Object.keys(SORT_OPTIONS).map((key) => (
+            <option key={key} value={key}>{SORT_LABELS[key as SortKey]}</option>
+          ))}
+        </select>
         <button className="btn-ghost" type="submit">Search</button>
       </form>
 

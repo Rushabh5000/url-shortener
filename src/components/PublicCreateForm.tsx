@@ -101,7 +101,7 @@ export function PublicCreateForm({ siteKey }: { siteKey: string }) {
           <input
             id="url"
             name="url"
-            type="url"
+            type="text"
             inputMode="url"
             required
             placeholder="https://example.com/some/very/long/link"

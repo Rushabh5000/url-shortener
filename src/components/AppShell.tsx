@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { LogoutButton } from "./LogoutButton";
+import { ThemeToggle } from "./ThemeToggle";
 
 const NAV = [
   { href: "/dashboard", label: "Dashboard" },
@@ -53,6 +54,7 @@ export function AppShell({
         </div>
         <div className="flex items-center gap-3">
           <span className="hidden text-xs text-faint sm:inline">{email}</span>
+          <ThemeToggle />
           <LogoutButton />
         </div>
       </header>

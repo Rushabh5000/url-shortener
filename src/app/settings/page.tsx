@@ -6,6 +6,7 @@ import { apiKeys } from "@/db/schema";
 import { config } from "@/lib/config";
 import { AppShell } from "@/components/AppShell";
 import { ApiKeyManager } from "@/components/ApiKeyManager";
+import { BookmarkletLink } from "@/components/BookmarkletLink";
 import { ChangePasswordForm } from "@/components/ChangePasswordForm";
 import { CopyButton } from "@/components/CopyButton";
 
@@ -58,10 +59,11 @@ export default async function SettingsPage() {
         <section className="card">
           <h2 className="mb-1 text-sm font-semibold text-heading">Bookmarklet</h2>
           <p className="mb-3 text-xs text-faint">
-            Drag this to your bookmarks bar (or save on mobile). On any page, tap it to shorten the
-            current URL via the Quick page.
+            Drag the button below to your bookmarks bar (or save on mobile). On any page, tap it to
+            shorten the current URL via the Quick page.
           </p>
           <div className="flex items-center gap-2">
+            <BookmarkletLink href={bookmarklet}>Shorten this</BookmarkletLink>
             <code className="flex-1 truncate rounded bg-warm-code px-2 py-1.5 text-xs">{bookmarklet}</code>
             <CopyButton text={bookmarklet} className="btn-ghost !py-1.5 text-xs" />
           </div>
