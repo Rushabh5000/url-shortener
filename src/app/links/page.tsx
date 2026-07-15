@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
-import { isPublicSubmission, listLinks, SORT_OPTIONS, type SortKey } from "@/lib/links";
+import { isPublicSubmission, listLinks, type SortColumn, type SortDir, type SortKey } from "@/lib/links";
 import { AppShell } from "@/components/AppShell";
 import { CopyButton } from "@/components/CopyButton";
 import { shortUrl } from "@/lib/config";
@@ -9,12 +9,48 @@ import { formatDate, prettyUrl, timeAgo } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
-const SORT_LABELS: Record<SortKey, string> = {
-  newest: "Newest first",
-  oldest: "Oldest first",
-  clicks: "Most clicks",
-  slug: "Slug (A–Z)",
-};
+const COLUMNS: Array<{ key: SortColumn; label: string; defaultDir: SortDir; className?: string }> = [
+  { key: "slug", label: "Short", defaultDir: "asc" },
+  { key: "destination", label: "Destination", defaultDir: "asc" },
+  { key: "clicks", label: "Clicks", defaultDir: "desc", className: "text-right" },
+  { key: "created", label: "Created", defaultDir: "desc", className: "hidden sm:table-cell" },
+  { key: "lastClick", label: "Last click", defaultDir: "desc", className: "hidden md:table-cell" },
+];
+
+function SortHeader({
+  column,
+  label,
+  defaultDir,
+  className,
+  q,
+  activeColumn,
+  activeDir,
+}: {
+  column: SortColumn;
+  label: string;
+  defaultDir: SortDir;
+  className?: string;
+  q?: string;
+  activeColumn: SortColumn;
+  activeDir: SortDir;
+}) {
+  const isActive = column === activeColumn;
+  const nextDir: SortDir = isActive ? (activeDir === "asc" ? "desc" : "asc") : defaultDir;
+  const params = new URLSearchParams();
+  if (q) params.set("q", q);
+  params.set("sort", `${column}-${nextDir}`);
+
+  return (
+    <th className={`px-4 py-3 ${className ?? ""}`}>
+      <Link href={`/links?${params.toString()}`} className="inline-flex items-center gap-1 hover:text-heading">
+        {label}
+        <span className={isActive ? "text-accent" : "text-faint"}>
+          {isActive ? (activeDir === "asc" ? "↑" : "↓") : "↕"}
+        </span>
+      </Link>
+    </th>
+  );
+}
 
 export default async function LinksPage({
   searchParams,
@@ -25,7 +61,10 @@ export default async function LinksPage({
   if (!user) redirect("/login");
 
   const { q, sort: rawSort } = await searchParams;
-  const sort: SortKey = rawSort && rawSort in SORT_OPTIONS ? (rawSort as SortKey) : "newest";
+  const [rawColumn, rawDir] = (rawSort ?? "created-desc").split("-");
+  const activeColumn: SortColumn = COLUMNS.some((c) => c.key === rawColumn) ? (rawColumn as SortColumn) : "created";
+  const activeDir: SortDir = rawDir === "asc" ? "asc" : "desc";
+  const sort: SortKey = `${activeColumn}-${activeDir}`;
   const links = await listLinks({ q, sort });
 
   return (
@@ -42,11 +81,7 @@ export default async function LinksPage({
           placeholder="Search slug, url, title, tag…"
           className="input"
         />
-        <select name="sort" defaultValue={sort} className="input w-auto shrink-0">
-          {Object.keys(SORT_OPTIONS).map((key) => (
-            <option key={key} value={key}>{SORT_LABELS[key as SortKey]}</option>
-          ))}
-        </select>
+        <input type="hidden" name="sort" value={sort} />
         <button className="btn-ghost" type="submit">Search</button>
       </form>
 
@@ -59,11 +94,18 @@ export default async function LinksPage({
           <table className="w-full text-sm">
             <thead className="border-warm border-b text-left text-xs uppercase tracking-wide text-faint">
               <tr>
-                <th className="px-4 py-3">Short</th>
-                <th className="px-4 py-3">Destination</th>
-                <th className="px-4 py-3 text-right">Clicks</th>
-                <th className="hidden px-4 py-3 sm:table-cell">Created</th>
-                <th className="hidden px-4 py-3 md:table-cell">Last click</th>
+                {COLUMNS.map((col) => (
+                  <SortHeader
+                    key={col.key}
+                    column={col.key}
+                    label={col.label}
+                    defaultDir={col.defaultDir}
+                    className={col.className}
+                    q={q}
+                    activeColumn={activeColumn}
+                    activeDir={activeDir}
+                  />
+                ))}
                 <th className="px-4 py-3"></th>
               </tr>
             </thead>

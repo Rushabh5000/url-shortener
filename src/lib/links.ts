@@ -188,14 +188,24 @@ export async function deleteLink(id: string): Promise<void> {
   await db.delete(links).where(eq(links.id, id));
 }
 
-export const SORT_OPTIONS = {
-  newest: desc(links.createdAt),
-  oldest: asc(links.createdAt),
-  clicks: desc(links.clickCount),
-  slug: asc(links.slug),
+export const SORT_COLUMNS = {
+  slug: links.slug,
+  destination: links.destinationUrl,
+  clicks: links.clickCount,
+  created: links.createdAt,
+  lastClick: links.lastClickedAt,
 } as const;
 
-export type SortKey = keyof typeof SORT_OPTIONS;
+export type SortColumn = keyof typeof SORT_COLUMNS;
+export type SortDir = "asc" | "desc";
+export type SortKey = `${SortColumn}-${SortDir}`;
+
+export const SORT_OPTIONS: Record<SortKey, ReturnType<typeof asc>> = Object.fromEntries(
+  (Object.keys(SORT_COLUMNS) as SortColumn[]).flatMap((col) => [
+    [`${col}-asc`, asc(SORT_COLUMNS[col])],
+    [`${col}-desc`, desc(SORT_COLUMNS[col])],
+  ]),
+) as Record<SortKey, ReturnType<typeof asc>>;
 
 export interface ListLinksOptions {
   q?: string;
@@ -205,7 +215,7 @@ export interface ListLinksOptions {
 }
 
 export async function listLinks(opts: ListLinksOptions = {}): Promise<Link[]> {
-  const { q, sort = "newest", limit = 100, offset = 0 } = opts;
+  const { q, sort = "created-desc", limit = 100, offset = 0 } = opts;
   const where = q
     ? or(
         like(links.slug, `%${q}%`),
@@ -218,7 +228,7 @@ export async function listLinks(opts: ListLinksOptions = {}): Promise<Link[]> {
     .select()
     .from(links)
     .where(where)
-    .orderBy(SORT_OPTIONS[sort] ?? SORT_OPTIONS.newest)
+    .orderBy(SORT_OPTIONS[sort] ?? SORT_OPTIONS["created-desc"])
     .limit(limit)
     .offset(offset);
 }
