@@ -54,40 +54,86 @@ export async function POST(req: Request) {
     await sendMessage(
       chatId,
       "Send me any URL and I'll shorten it on therushabh.in.\n" +
-        "Optional custom alias: put it after a space, e.g.\n" +
-        "https://example.com/very/long my-alias",
+        "Optional custom alias (single-URL messages only): put it after a space, e.g.\n" +
+        "https://example.com/very/long my-alias\n" +
+        "Paste text with several URLs in it and I'll shorten each one in place.",
     );
     return Response.json({ ok: true });
   }
 
-  // Format: "<url> [alias]"
-  const [url, alias] = text.split(/\s+/, 2);
-
-  try {
-    const { link, reused, affiliateAttempted, affiliateConverted } = await createLink({
-      destinationUrl: url,
-      alias: alias || undefined,
-      createdBy: `telegram:${chatId}`,
-    });
-    if (!reused) {
-      await writeAudit({
-        actor: `telegram:${chatId}`,
-        action: "link.create",
-        target: link.slug,
-      });
-    }
-    const conversionNote =
-      !reused && affiliateAttempted && !affiliateConverted
-        ? "\n(Could not convert to affiliate, just shortened it.)"
-        : "";
-    await sendMessage(
-      chatId,
-      `${reused ? "Already had that one:\n" : ""}${shortUrl(link.slug)}${conversionNote}`,
-    );
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : "Something went wrong";
-    await sendMessage(chatId, `⚠️ ${msg}`);
+  const urlMatches = [...text.matchAll(/https?:\/\/\S+/g)];
+  if (urlMatches.length === 0) {
+    await sendMessage(chatId, "Send me a URL to shorten it.");
+    return Response.json({ ok: true });
   }
+
+  // A message that's just one URL (optionally followed by a single alias
+  // token) keeps the classic alias-supporting flow. Anything else — several
+  // URLs, or a URL embedded in surrounding text — shortens every URL found
+  // in place and returns the message with the rest of the text intact.
+  const first = urlMatches[0];
+  const afterFirstUrl = text.slice(first.index + first[0].length).trim();
+  const isSingleWithOptionalAlias =
+    urlMatches.length === 1 && first.index === 0 && !/\s/.test(afterFirstUrl);
+
+  if (isSingleWithOptionalAlias) {
+    const [url, alias] = text.split(/\s+/, 2);
+    try {
+      const { link, reused, affiliateAttempted, affiliateConverted } = await createLink({
+        destinationUrl: url,
+        alias: alias || undefined,
+        createdBy: `telegram:${chatId}`,
+      });
+      if (!reused) {
+        await writeAudit({
+          actor: `telegram:${chatId}`,
+          action: "link.create",
+          target: link.slug,
+        });
+      }
+      const conversionNote =
+        !reused && affiliateAttempted && !affiliateConverted
+          ? "\n(Could not convert to affiliate, just shortened it.)"
+          : "";
+      await sendMessage(
+        chatId,
+        `${reused ? "Already had that one:\n" : ""}${shortUrl(link.slug)}${conversionNote}`,
+      );
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Something went wrong";
+      await sendMessage(chatId, `⚠️ ${msg}`);
+    }
+    return Response.json({ ok: true });
+  }
+
+  // Multi-URL / embedded-text mode: shorten each URL in place, right to
+  // left so earlier match indices stay valid as the string is rebuilt.
+  let result = text;
+  for (const match of [...urlMatches].reverse()) {
+    const url = match[0];
+    try {
+      const { link, reused, affiliateAttempted, affiliateConverted } = await createLink({
+        destinationUrl: url,
+        createdBy: `telegram:${chatId}`,
+      });
+      if (!reused) {
+        await writeAudit({
+          actor: `telegram:${chatId}`,
+          action: "link.create",
+          target: link.slug,
+        });
+      }
+      let replacement = shortUrl(link.slug);
+      if (!reused && affiliateAttempted && !affiliateConverted) {
+        replacement += " (not converted to affiliate)";
+      }
+      result = result.slice(0, match.index) + replacement + result.slice(match.index + url.length);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "failed";
+      result = result.slice(0, match.index) + `${url} (⚠️ ${msg})` + result.slice(match.index + url.length);
+    }
+  }
+  await sendMessage(chatId, result);
 
   return Response.json({ ok: true });
 }

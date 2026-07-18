@@ -15,6 +15,11 @@ const STOPWORDS = new Set([
   "page", "pages", "view", "detail", "details", "product", "products",
   "item", "items", "shop", "store", "buy", "online", "official", "site",
   "id", "dp", "gp", "itm", "pid", "ref", "utm", "src", "amp",
+  // Generic marketing/deal filler that's technically a "word" but tells you
+  // nothing about what the link actually is — better to fall through to the
+  // title-fetch tiers than settle for a slug like "deals-mumbai-btl".
+  "deal", "deals", "offer", "offers", "sale", "sales", "coupon", "coupons",
+  "cashback", "promo", "promos", "discount", "discounts", "voucher", "vouchers",
 ]);
 
 function isMeaningfulWord(word: string): boolean {
@@ -47,6 +52,14 @@ function toSlug(words: string[], maxWords = 4, maxLen = 40): string | null {
   return VALID_SLUG.test(slug) ? slug : null;
 }
 
+// Path segments that mark a generic marketing wrapper rather than a real
+// product/article slug (deal-aggregator pages, cashback/coupon landers,
+// etc). Their path never carries useful context — the destination's own
+// keywords are marketing boilerplate, not the actual thing being linked to
+// — so Tier 1 is skipped entirely and callers fall through to the
+// title-fetch tiers, which see the rendered page content instead.
+const GENERIC_PATH_SEGMENTS = /^(deals?|offers?|coupons?|promos?|cashback|discounts?)$/i;
+
 /** Tier 1: pull keywords straight out of the destination URL's own path. */
 function keywordsFromUrl(destinationUrl: string): string | null {
   let url: URL;
@@ -55,8 +68,11 @@ function keywordsFromUrl(destinationUrl: string): string | null {
   } catch {
     return null;
   }
-  const words = url.pathname
-    .split(/[/_.:-]+/)
+  const segments = url.pathname.split("/").filter(Boolean);
+  if (segments.some((s) => GENERIC_PATH_SEGMENTS.test(s))) return null;
+
+  const words = segments
+    .flatMap((segment) => segment.split(/[_.:-]+/))
     .flatMap((segment) => segment.split(/(?=[A-Z])/)) // camelCase -> separate words
     .filter(Boolean);
   return toSlug(words);
