@@ -51,7 +51,7 @@ export async function getLinkById(id: string): Promise<Link | undefined> {
   return rows[0];
 }
 
-async function generateUniqueSlug(): Promise<string> {
+export async function generateUniqueSlug(): Promise<string> {
   for (let attempt = 0; attempt < MAX_SLUG_ATTEMPTS; attempt++) {
     // Grow the length slightly after a few collisions to keep success likely.
     const length = config.slugLength + Math.floor(attempt / 3);

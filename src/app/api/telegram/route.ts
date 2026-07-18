@@ -1,6 +1,8 @@
-import { createLink } from "@/lib/links";
+import { createLink, deleteLink, generateUniqueSlug, getLinkBySlug, listLinks, updateLink } from "@/lib/links";
+import { getDashboardStats, getTopReferrersForLink } from "@/lib/stats";
 import { writeAudit } from "@/lib/audit";
 import { config, shortUrl } from "@/lib/config";
+import { formatDate, prettyUrl, timeAgo } from "@/lib/format";
 
 export const runtime = "nodejs";
 
@@ -22,6 +24,134 @@ async function sendMessage(chatId: number, text: string): Promise<void> {
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ chat_id: chatId, text, disable_web_page_preview: true }),
   }).catch((err) => console.error("telegram send failed", err));
+}
+
+const HELP_TEXT =
+  "Send me any URL and I'll shorten it on therushabh.in.\n" +
+  "Optional custom alias (single-URL messages only): put it after a space, e.g.\n" +
+  "https://example.com/very/long my-alias\n" +
+  "Paste text with several URLs in it and I'll shorten each one in place.\n\n" +
+  "Commands:\n" +
+  "/stats — overall click stats\n" +
+  "/stats <slug> — stats for one short link\n" +
+  "/list [search] — recent links, optionally filtered\n" +
+  "/regenerate <slug> — give a link a new random slug\n" +
+  "/delete <slug> — delete a short link";
+
+/** Accepts a bare slug or a full short URL and returns just the slug. */
+function extractSlug(arg: string): string {
+  const trimmed = arg.trim();
+  try {
+    if (/^https?:\/\//i.test(trimmed)) {
+      return new URL(trimmed).pathname.replace(/^\//, "");
+    }
+  } catch {
+    // fall through, treat as a bare slug
+  }
+  return trimmed.replace(/^\//, "");
+}
+
+async function handleCommand(chatId: number, command: string, arg: string): Promise<void> {
+  switch (command) {
+    case "start":
+    case "help": {
+      await sendMessage(chatId, HELP_TEXT);
+      return;
+    }
+
+    case "stats": {
+      if (!arg) {
+        const stats = await getDashboardStats();
+        const top = stats.topLinks
+          .map((l) => `  /${l.slug} — ${l.clickCount} clicks`)
+          .join("\n") || "  (none yet)";
+        await sendMessage(
+          chatId,
+          `Total links: ${stats.totalLinks}\n` +
+            `Total clicks: ${stats.totalClicks}\n` +
+            `Clicks today: ${stats.clicksToday}\n\n` +
+            `Top links:\n${top}`,
+        );
+        return;
+      }
+      const slug = extractSlug(arg);
+      const link = await getLinkBySlug(slug);
+      if (!link) {
+        await sendMessage(chatId, `No short link found for "${slug}".`);
+        return;
+      }
+      const referrers = await getTopReferrersForLink(link.id);
+      const referrerLines =
+        referrers.map((r) => `  ${r.referrer ?? "(direct)"} — ${r.count}`).join("\n") || "  (none yet)";
+      await sendMessage(
+        chatId,
+        `${shortUrl(link.slug)}\n` +
+          `→ ${prettyUrl(link.destinationUrl, 80)}\n\n` +
+          `Clicks: ${link.clickCount}\n` +
+          `Created: ${formatDate(link.createdAt)}\n` +
+          `Last click: ${timeAgo(link.lastClickedAt)}\n\n` +
+          `Top referrers:\n${referrerLines}`,
+      );
+      return;
+    }
+
+    case "list": {
+      const links = await listLinks({ q: arg || undefined, limit: 10 });
+      if (links.length === 0) {
+        await sendMessage(chatId, arg ? `No links match "${arg}".` : "No links yet.");
+        return;
+      }
+      const lines = links.map((l) => `/${l.slug} — ${l.clickCount} clicks — ${prettyUrl(l.destinationUrl, 40)}`);
+      await sendMessage(chatId, lines.join("\n"));
+      return;
+    }
+
+    case "regenerate":
+    case "regen": {
+      if (!arg) {
+        await sendMessage(chatId, "Usage: /regenerate <slug>");
+        return;
+      }
+      const slug = extractSlug(arg);
+      const link = await getLinkBySlug(slug);
+      if (!link) {
+        await sendMessage(chatId, `No short link found for "${slug}".`);
+        return;
+      }
+      try {
+        const newSlug = await generateUniqueSlug();
+        const updated = await updateLink(link.id, { alias: newSlug });
+        await writeAudit({ actor: `telegram:${chatId}`, action: "link.regenerate", target: updated.slug });
+        await sendMessage(chatId, `${shortUrl(link.slug)} → ${shortUrl(updated.slug)}`);
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : "Something went wrong";
+        await sendMessage(chatId, `⚠️ ${msg}`);
+      }
+      return;
+    }
+
+    case "delete": {
+      if (!arg) {
+        await sendMessage(chatId, "Usage: /delete <slug>");
+        return;
+      }
+      const slug = extractSlug(arg);
+      const link = await getLinkBySlug(slug);
+      if (!link) {
+        await sendMessage(chatId, `No short link found for "${slug}".`);
+        return;
+      }
+      await deleteLink(link.id);
+      await writeAudit({ actor: `telegram:${chatId}`, action: "link.delete", target: slug });
+      await sendMessage(chatId, `Deleted ${shortUrl(slug)}.`);
+      return;
+    }
+
+    default: {
+      await sendMessage(chatId, `Unknown command "/${command}". Send /help for a list.`);
+      return;
+    }
+  }
 }
 
 export async function POST(req: Request) {
@@ -50,14 +180,10 @@ export async function POST(req: Request) {
 
   const text = message.text.trim();
 
-  if (text === "/start" || text === "/help") {
-    await sendMessage(
-      chatId,
-      "Send me any URL and I'll shorten it on therushabh.in.\n" +
-        "Optional custom alias (single-URL messages only): put it after a space, e.g.\n" +
-        "https://example.com/very/long my-alias\n" +
-        "Paste text with several URLs in it and I'll shorten each one in place.",
-    );
+  const commandMatch = text.match(/^\/(\w+)(?:@\w+)?(?:\s+([\s\S]*))?$/);
+  if (commandMatch) {
+    const [, command, arg] = commandMatch;
+    await handleCommand(chatId, command.toLowerCase(), (arg ?? "").trim());
     return Response.json({ ok: true });
   }
 
