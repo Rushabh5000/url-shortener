@@ -1,26 +1,26 @@
 @import "tailwindcss";
 
 /*
-  Warm, friendly theme: cream page background, coral primary accent,
-  amber/pink as secondary accents, generous pill-shaped controls.
+  Blueprint theme: cool navy/cyan on a technical-drafting neutral,
+  amber/pink/sage kept as secondary/semantic accents.
 */
 :root {
   color-scheme: light;
 
-  --bg: #fbf6f1;
+  --bg: #eef4fa;
   --surface: #ffffff;
-  --surface-2: #fff3ea;
-  --border: #f0e1d2;
-  --border-strong: #e6cdb2;
+  --surface-2: #dbe7f2;
+  --border: #c2d5e6;
+  --border-strong: #a8c0d6;
 
-  --text-primary: #2b211b;
-  --text-secondary: #7a6b5d;
-  --text-muted: #a8988a;
+  --text-primary: #101c2c;
+  --text-secondary: #3f5468;
+  --text-muted: #6b7f92;
 
-  --coral: #d8592f;
-  --coral-hover: #c24b24;
-  --coral-soft: #fbe7dd;
-  --coral-text: #9a3a18;
+  --coral: #1a4f7a;
+  --coral-hover: #143f61;
+  --coral-soft: #dbe9f5;
+  --coral-text: #1a4f7a;
 
   --amber-soft: #fdefd7;
   --amber-text: #8a5710;
@@ -36,20 +36,20 @@
   :root:not([data-theme="light"]) {
     color-scheme: dark;
 
-    --bg: #100c0a;
-    --surface: #221a15;
-    --surface-2: #35281f;
-    --border: #4a382c;
-    --border-strong: #614a3a;
+    --bg: #0e1726;
+    --surface: #16233a;
+    --surface-2: #1e2f4b;
+    --border: #2c4260;
+    --border-strong: #3c5676;
 
-    --text-primary: #f8f0e8;
-    --text-secondary: #c9b3a1;
-    --text-muted: #93816f;
+    --text-primary: #e7f1f7;
+    --text-secondary: #a9bccb;
+    --text-muted: #7591ab;
 
-    --coral: #e88551;
-    --coral-hover: #f19563;
-    --coral-soft: #47280f;
-    --coral-text: #f4b284;
+    --coral: #256f8a;
+    --coral-hover: #2f86a6;
+    --coral-soft: #142a38;
+    --coral-text: #6ecbe0;
 
     --amber-soft: #45330d;
     --amber-text: #e8bc61;
@@ -65,20 +65,20 @@
 :root[data-theme="dark"] {
   color-scheme: dark;
 
-  --bg: #100c0a;
-  --surface: #221a15;
-  --surface-2: #35281f;
-  --border: #4a382c;
-  --border-strong: #614a3a;
+  --bg: #0e1726;
+  --surface: #16233a;
+  --surface-2: #1e2f4b;
+  --border: #2c4260;
+  --border-strong: #3c5676;
 
-  --text-primary: #f8f0e8;
-  --text-secondary: #c9b3a1;
-  --text-muted: #93816f;
+  --text-primary: #e7f1f7;
+  --text-secondary: #a9bccb;
+  --text-muted: #7591ab;
 
-  --coral: #e88551;
-  --coral-hover: #f19563;
-  --coral-soft: #47280f;
-  --coral-text: #f4b284;
+  --coral: #256f8a;
+  --coral-hover: #2f86a6;
+  --coral-soft: #142a38;
+  --coral-text: #6ecbe0;
 
   --amber-soft: #45330d;
   --amber-text: #e8bc61;
