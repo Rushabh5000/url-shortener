@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { PROJECTS } from "@/data/projects";
 import { HeroPanel } from "@/components/HeroPanel";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export const dynamic = "force-static";
 
@@ -62,7 +63,11 @@ export default function HomePage() {
   const projectLinks = live.map((p) => displayUrl(p.liveUrl!));
 
   return (
-    <div className="mx-auto flex min-h-dvh max-w-4xl flex-col justify-center gap-10 px-6 py-16 md:flex-row md:items-center">
+    <div className="relative mx-auto flex min-h-dvh max-w-4xl flex-col justify-center gap-10 px-6 py-16 md:flex-row md:items-center">
+      <div className="absolute right-4 top-4 md:right-6 md:top-6">
+        <ThemeToggle />
+      </div>
+
       <div className="w-full md:w-[380px] md:flex-shrink-0">
         <HeroPanel projectLinks={projectLinks} />
 
