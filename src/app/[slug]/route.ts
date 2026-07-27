@@ -12,12 +12,12 @@ function htmlResponse(status: number, title: string, body: string): Response {
 <title>${title}</title>
 <style>
 :root{color-scheme:light}
-body{margin:0;min-height:100vh;display:grid;place-items:center;background:#eef4fa;
-color:#101c2c;font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+body{margin:0;min-height:100vh;display:grid;place-items:center;background:#fbf6f1;
+color:#2b211b;font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
 .card{max-width:26rem;padding:2.5rem;text-align:center}
-h1{font-size:3rem;margin:0 0 .5rem;color:#1a4f7a}
-p{color:#3f5468;margin:0 0 1.5rem}
-a{color:#1a4f7a;text-decoration:none;font-weight:600}
+h1{font-size:3rem;margin:0 0 .5rem;color:#d8592f}
+p{color:#7a6b5d;margin:0 0 1.5rem}
+a{color:#d8592f;text-decoration:none;font-weight:600}
 </style></head><body><div class="card"><h1>${title}</h1><p>${body}</p>
 <a href="/">Go to therushabh.in →</a></div></body></html>`;
   return new Response(html, {
