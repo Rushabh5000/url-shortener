@@ -1,0 +1,11 @@
+{
+  "name": "URL Shortener",
+  "description": "Personal URL shortener with analytics and QR codes.",
+  "url": "http://localhost:3003",
+  "ports": [3003],
+  "primaryPort": 3003,
+  "color": "#f59e0b",
+  "emoji": "🔗",
+  "requiresDocker": false,
+  "order": 2
+}
