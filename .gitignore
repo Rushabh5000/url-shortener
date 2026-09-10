@@ -34,3 +34,6 @@ yarn-error.log*
 !.vscode/extensions.json
 
 .vercel
+
+# Claude Code session/worktree dir
+.claude/
