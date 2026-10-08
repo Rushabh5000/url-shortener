@@ -230,30 +230,48 @@ export async function POST(req: Request) {
 
   // Multi-URL / embedded-text mode: shorten each URL in place, right to
   // left so earlier match indices stay valid as the string is rebuilt.
+  // Links are created a few at a time — each one waits on a page-title
+  // lookup for its slug, so one-by-one would crawl on a long list.
+  type Outcome = { short: string; notConverted: boolean } | { error: string };
+  const outcomes: Outcome[] = new Array(urlMatches.length);
+  let next = 0;
+  const worker = async () => {
+    while (next < urlMatches.length) {
+      const i = next++;
+      const url = urlMatches[i][0];
+      try {
+        const { link, reused, affiliateAttempted, affiliateConverted } = await createLink({
+          destinationUrl: url,
+          createdBy: `telegram:${chatId}`,
+        });
+        if (!reused) {
+          await writeAudit({ actor: `telegram:${chatId}`, action: "link.create", target: link.slug });
+        }
+        outcomes[i] = {
+          short: shortUrl(link.slug),
+          notConverted: !reused && affiliateAttempted && !affiliateConverted,
+        };
+      } catch (err) {
+        outcomes[i] = { error: err instanceof Error ? err.message : "failed" };
+      }
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(5, urlMatches.length) }, worker));
+
+  // Rebuild right to left so earlier match indices stay valid.
   let result = text;
   const notConverted: string[] = [];
   const failed: string[] = [];
-  for (const match of [...urlMatches].reverse()) {
-    const url = match[0];
-    try {
-      const { link, reused, affiliateAttempted, affiliateConverted } = await createLink({
-        destinationUrl: url,
-        createdBy: `telegram:${chatId}`,
-      });
-      if (!reused) {
-        await writeAudit({
-          actor: `telegram:${chatId}`,
-          action: "link.create",
-          target: link.slug,
-        });
-      }
-      const short = shortUrl(link.slug);
-      if (!reused && affiliateAttempted && !affiliateConverted) notConverted.unshift(short);
-      result = result.slice(0, match.index) + short + result.slice(match.index + url.length);
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : "failed";
-      failed.unshift(`${url} — ${msg}`);
-    }
+  urlMatches.forEach((match, i) => {
+    const o = outcomes[i];
+    if ("error" in o) failed.push(`${match[0]} — ${o.error}`);
+    else if (o.notConverted) notConverted.push(o.short);
+  });
+  for (let i = urlMatches.length - 1; i >= 0; i--) {
+    const o = outcomes[i];
+    if ("error" in o) continue;
+    const m = urlMatches[i];
+    result = result.slice(0, m.index) + o.short + result.slice(m.index + m[0].length);
   }
   // The reply stays the original text with only the URLs swapped; status
   // notes go in a separate message so it can be forwarded as-is.
