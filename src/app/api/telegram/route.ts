@@ -217,14 +217,10 @@ export async function POST(req: Request) {
           target: link.slug,
         });
       }
-      const conversionNote =
-        !reused && affiliateAttempted && !affiliateConverted
-          ? "\n(Could not convert to affiliate, just shortened it.)"
-          : "";
-      await sendMessage(
-        chatId,
-        `${reused ? "Already had that one:\n" : ""}${shortUrl(link.slug)}${conversionNote}`,
-      );
+      await sendMessage(chatId, `${reused ? "Already had that one:\n" : ""}${shortUrl(link.slug)}`);
+      if (!reused && affiliateAttempted && !affiliateConverted) {
+        await sendMessage(chatId, "Could not convert to affiliate, just shortened it.");
+      }
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Something went wrong";
       await sendMessage(chatId, `⚠️ ${msg}`);
@@ -235,6 +231,8 @@ export async function POST(req: Request) {
   // Multi-URL / embedded-text mode: shorten each URL in place, right to
   // left so earlier match indices stay valid as the string is rebuilt.
   let result = text;
+  const notConverted: string[] = [];
+  const failed: string[] = [];
   for (const match of [...urlMatches].reverse()) {
     const url = match[0];
     try {
@@ -249,17 +247,26 @@ export async function POST(req: Request) {
           target: link.slug,
         });
       }
-      let replacement = shortUrl(link.slug);
-      if (!reused && affiliateAttempted && !affiliateConverted) {
-        replacement += " (not converted to affiliate)";
-      }
-      result = result.slice(0, match.index) + replacement + result.slice(match.index + url.length);
+      const short = shortUrl(link.slug);
+      if (!reused && affiliateAttempted && !affiliateConverted) notConverted.unshift(short);
+      result = result.slice(0, match.index) + short + result.slice(match.index + url.length);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "failed";
-      result = result.slice(0, match.index) + `${url} (⚠️ ${msg})` + result.slice(match.index + url.length);
+      failed.unshift(`${url} — ${msg}`);
     }
   }
+  // The reply stays the original text with only the URLs swapped; status
+  // notes go in a separate message so it can be forwarded as-is.
   await sendMessage(chatId, result);
+
+  const notes: string[] = [];
+  if (notConverted.length) {
+    notes.push(`Could not convert to affiliate, just shortened:\n${notConverted.join("\n")}`);
+  }
+  if (failed.length) {
+    notes.push(`⚠️ Could not shorten:\n${failed.join("\n")}`);
+  }
+  if (notes.length) await sendMessage(chatId, notes.join("\n\n"));
 
   return Response.json({ ok: true });
 }

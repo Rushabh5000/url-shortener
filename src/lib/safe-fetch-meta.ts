@@ -60,6 +60,66 @@ function extractTitle(html: string): string | null {
   return null;
 }
 
+const REDIRECT_PROBE_BUDGET_MS = 3000;
+const REDIRECT_PROBE_MAX_HOPS = 5;
+
+/**
+ * Follow a URL's HTTP redirect chain (no bodies read) and return the first
+ * URL in it whose hostname satisfies `matches`, or null. Same SSRF rules as
+ * above — every hop is resolved and checked — with a hard overall time
+ * budget. Used to see through third-party redirector links (e.g. another
+ * affiliate's short links) that end up at a merchant we care about.
+ */
+export async function findRedirectTarget(
+  url: string,
+  matches: (hostname: string) => boolean,
+): Promise<string | null> {
+  const deadline = Date.now() + REDIRECT_PROBE_BUDGET_MS;
+  let current = url;
+
+  for (let hop = 0; hop <= REDIRECT_PROBE_MAX_HOPS; hop++) {
+    let target: URL;
+    try {
+      target = new URL(current);
+    } catch {
+      return null;
+    }
+    if (target.protocol !== "http:" && target.protocol !== "https:") return null;
+    if (matches(target.hostname.toLowerCase())) return target.toString();
+
+    const remaining = deadline - Date.now();
+    if (remaining <= 0) return null;
+
+    try {
+      await assertPublicHost(target.hostname);
+    } catch {
+      return null;
+    }
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), Math.min(remaining, FETCH_TIMEOUT_MS));
+    try {
+      const res = await fetch(target, {
+        signal: controller.signal,
+        redirect: "manual",
+        headers: { "user-agent": "Mozilla/5.0 (compatible; therushabh-in-linkbot/1.0)" },
+      });
+      await res.body?.cancel().catch(() => {});
+
+      if (![301, 302, 303, 307, 308].includes(res.status)) return null;
+      const location = res.headers.get("location");
+      if (!location) return null;
+      current = new URL(location, target).toString();
+    } catch {
+      return null;
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  return null;
+}
+
 /**
  * Fetch a page's title, bounded and SSRF-safe. Returns null on any failure —
  * callers must treat that as "no metadata available" and fall back gracefully,
