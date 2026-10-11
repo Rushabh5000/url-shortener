@@ -83,7 +83,7 @@ function keywordsFromUrl(destinationUrl: string): string | null {
 // Titles served to bots by interstitials, captcha walls and error pages —
 // never describe the link, so they must not become a slug.
 const JUNK_TITLE =
-  /just a moment|access denied|robot check|attention required|captcha|redirecting|please wait|sign[ -]?in|log[ -]?in|not found|page not available|^\s*(403|404|503)\b/i;
+  /just a moment|access denied|robot check|attention required|captcha|redirecting|please wait|sign[ -]?in|log[ -]?in|not found|page not available|service unavailable|temporarily unavailable|bad gateway|internal server error|gateway timeout|too many requests|^\s*(400|403|404|429|500|502|503|504)\b/i;
 
 function decodeEntities(s: string): string {
   return s

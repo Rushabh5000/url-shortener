@@ -139,7 +139,24 @@ export async function createLink(input: CreateLinkInput): Promise<CreateLinkResu
     updatedAt: now,
     createdBy: input.createdBy ?? null,
   };
-  await db.insert(links).values(link);
+  try {
+    await db.insert(links).values(link);
+  } catch (err: unknown) {
+    // Unique-constraint violation on slug: happens when concurrent creates
+    // race past the check-then-insert window with the same smart slug.
+    // Recover by falling back to a random slug and retrying once.
+    if (
+      typeof err === "object" &&
+      err !== null &&
+      "code" in err &&
+      (err as { code: string }).code === "23505"
+    ) {
+      link.slug = await generateUniqueSlug();
+      await db.insert(links).values(link);
+    } else {
+      throw err;
+    }
+  }
   return {
     link,
     reused: false,
